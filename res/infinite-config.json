@@ -1,0 +1,29 @@
+{
+  "master": {
+    "ip": "127.0.0.1",
+    "port": 9998
+  }
+,
+  "handler": [
+    {
+      "name": "connector",
+      "config": [
+        {
+          "id": 2,
+          "ip": "127.0.0.1",
+          "port": 9999
+        }
+      ]
+    },
+    {
+      "name": "center",
+      "config": [
+        {
+          "id": 1,
+          "ip": "127.0.0.1",
+          "port": 9999
+        }
+      ]
+    }
+  ]
+}
