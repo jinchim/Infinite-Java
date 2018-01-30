@@ -1,26 +1,25 @@
 {
   "master": {
-    "ip": "127.0.0.1",
+    "ip": "104.194.95.251",
     "port": 9998
-  }
-,
-  "handler": [
+  },
+  "distribution": [
     {
-      "name": "connector",
+      "name": "test1",
       "config": [
         {
-          "id": 2,
-          "ip": "127.0.0.1",
+          "id": 1,
+          "ip": "104.194.95.251",
           "port": 9999
         }
       ]
     },
     {
-      "name": "center",
+      "name": "test2",
       "config": [
         {
           "id": 1,
-          "ip": "127.0.0.1",
+          "ip": "104.194.95.251",
           "port": 9999
         }
       ]

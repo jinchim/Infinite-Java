@@ -49,24 +49,27 @@ public final class InfiniteServer {
         sshHelper.exec("javac Test.java; java Test");
         sshHelper.exec("ls");
         sshHelper.release();
-//        try {
-//            System.out.println(TAG + ": init start");
-//            // 服务端相关配置的初始化
-//            helper.init();
-//            int port = helper.infiniteConfigJson.master.port;
-//            // 启动分布式服务
-//            ServerBootstrap serverBootstrap = new ServerBootstrap();
-//            serverBootstrap
-//                    .group(baseGroup, workerGroup) // 绑定线程池
-//                    .option(ChannelOption.SO_KEEPALIVE, true) // 保持长连接
-//                    .channel(NioServerSocketChannel.class) // 指定使用异步处理事件的 channel
-//                    .childHandler(new InitHandler()) // 绑定客户端连接时候触发的操作
-//                    .bind(port) // 绑定端口
-//                    .sync(); // 同步操作
-//            System.out.println(TAG + ": init success, listen on port => " + port);
-//        } catch (Exception e) {
-//            System.out.println(TAG + ": init falied => " + e.getMessage());
-//        }
+        try {
+            System.out.println(TAG + ": init start");
+            // 服务端相关配置的初始化
+            helper.init();
+            // 获取 master 服务器的信息（master 服务器的信息不会为空）并启动
+            String ip = helper.infiniteConfigJson.master.ip;
+            int port = helper.infiniteConfigJson.master.port;
+
+            // 启动分布式服务
+            ServerBootstrap serverBootstrap = new ServerBootstrap();
+            serverBootstrap
+                    .group(baseGroup, workerGroup) // 绑定线程池
+                    .option(ChannelOption.SO_KEEPALIVE, true) // 保持长连接
+                    .channel(NioServerSocketChannel.class) // 指定使用异步处理事件的 channel
+                    .childHandler(new InitHandler()) // 绑定客户端连接时候触发的操作
+                    .bind(port) // 绑定端口
+                    .sync(); // 同步操作
+            System.out.println(TAG + ": init success, listen on port => " + port);
+        } catch (Exception e) {
+            System.out.println(TAG + ": init falied => " + e.getMessage());
+        }
     }
 
     private class InitHandler extends ChannelInitializer<SocketChannel> {

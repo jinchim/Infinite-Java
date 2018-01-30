@@ -1,5 +1,7 @@
 package com.jinchim.infinite.server;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
@@ -8,8 +10,8 @@ final class InfiniteConfigJson {
 
     @SerializedName("master")
     MasterJson master;
-    @SerializedName("handler")
-    List<HandlerJson> handler;
+    @SerializedName("distribution")
+    List<DistributionJson> distribution;
 
     final static class MasterJson {
 
@@ -20,7 +22,7 @@ final class InfiniteConfigJson {
 
     }
 
-    final static class HandlerJson {
+    final static class DistributionJson {
 
         @SerializedName("name")
         String name;
@@ -40,4 +42,11 @@ final class InfiniteConfigJson {
 
     }
 
+    @Override
+    public String toString() {
+        // 这种创建方式可以把属性值为 null 的字段显示出来
+        Gson gson = new GsonBuilder().serializeNulls().create();
+//        Gson gson = new GsonBuilder().create();
+        return gson.toJson(this);
+    }
 }
