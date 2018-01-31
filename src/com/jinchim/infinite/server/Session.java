@@ -8,11 +8,23 @@ import io.netty.channel.Channel;
 
 public final class Session {
 
-    String id;
-    Channel channel;
+    private String id;
+    private Channel channel;
 
     Session(Channel channel) {
         this.channel = channel;
+    }
+
+    String getId() {
+        return id;
+    }
+
+    void close() {
+        try {
+            channel.close().sync();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void bindId(String id) {
@@ -33,14 +45,6 @@ public final class Session {
         protocol.setRoute(route);
         protocol.setContent(message);
         channel.writeAndFlush(protocol);
-    }
-
-    void close() {
-        try {
-            channel.close().sync();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
 }

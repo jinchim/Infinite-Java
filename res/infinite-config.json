@@ -1,7 +1,11 @@
 {
   "master": {
     "ip": "104.194.95.251",
-    "port": 9998
+    "port": 9998,
+    "ssh_port": 28447,
+    "username": "jinchim",
+    "password": "8354040110",
+    "project_path": "/home/jinchim/workspace/"
   },
   "distribution": [
     {

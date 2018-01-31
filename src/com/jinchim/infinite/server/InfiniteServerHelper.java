@@ -2,6 +2,7 @@ package com.jinchim.infinite.server;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.jinchim.infinite.protocol.Message;
 import com.jinchim.infinite.protocol.Protocol;
 
 import java.io.File;
@@ -15,27 +16,27 @@ import java.util.Map;
 
 final class InfiniteServerHelper {
 
-    private final String classPath = getClass().getResource("/").getPath();
-    private final String projectPath = new File("").getAbsolutePath();
-    // 所有路由相关信息
-    private Map<String, List<Map<Object, List<Method>>>> routeInfo;
+    private final String classRootPath = getClass().getResource("/").getPath();
+    private final String projectRootPath = new File("").getAbsolutePath();
+    // 带有注解的类的方法信息
+    private Map<String, Map<Object, Method>> annotationMethodInfo;
     // 是否存在正确格式的 infinite-config.json 文件
     private boolean isInfiniteConfigCorrect;
     // 分布式服务的配置信息
     InfiniteConfigJson infiniteConfigJson;
 
     InfiniteServerHelper() {
-        routeInfo = new HashMap<>();
+        annotationMethodInfo = new HashMap<>();
     }
 
     void init() {
         // 搜索工程目录下的 infinite-config.json 文件
-        findInfiniteConfigFile(projectPath);
+        findInfiniteConfigFile(projectRootPath);
         if (!isInfiniteConfigCorrect) {
             throw new RuntimeException("The infinite-config.json has some errors.");
         }
-        // 搜索根目录下的所有带注解的 Class 文件
-        findRouteClass(classPath);
+        // 搜索所有带注解的 Class 文件
+        findAnnotationClass(classRootPath);
     }
 
     private void findInfiniteConfigFile(String path) {
@@ -73,7 +74,15 @@ final class InfiniteServerHelper {
             // 解析 Json 字符串
             infiniteConfigJson = new Gson().fromJson(jsonStr, new TypeToken<InfiniteConfigJson>() {
             }.getType());
-            if (infiniteConfigJson != null && infiniteConfigJson.master != null && infiniteConfigJson.master.ip != null && infiniteConfigJson.master.port != null) {
+            // master 服务器的配置必须完全
+            if (infiniteConfigJson != null &&
+                    infiniteConfigJson.master != null &&
+                    infiniteConfigJson.master.ip != null &&
+                    infiniteConfigJson.master.port != null &&
+                    infiniteConfigJson.master.sshPort != null &&
+                    infiniteConfigJson.master.username != null &&
+                    infiniteConfigJson.master.password != null &&
+                    infiniteConfigJson.master.projectPath != null) {
                 isInfiniteConfigCorrect = true;
             }
         } catch (Exception e) {
@@ -81,17 +90,14 @@ final class InfiniteServerHelper {
         }
     }
 
-    private void findRouteClass(String path) {
+    private void findAnnotationClass(String path) {
         File[] files = new File(path).listFiles();
-        if (files == null) {
-            return;
-        }
         for (File file : files) {
             if (file.isDirectory()) {
-                findRouteClass(file.getAbsolutePath());
+                findAnnotationClass(file.getAbsolutePath());
             } else {
                 // 路径字符串的处理
-                String fileName = file.getAbsolutePath().replace(new File(classPath).getAbsolutePath(), "");
+                String fileName = file.getAbsolutePath().replace(new File(classRootPath).getAbsolutePath(), "");
                 String className = fileName;
                 className = className.replace("/", ".");
                 className = className.replace("\\", ".");
@@ -102,12 +108,12 @@ final class InfiniteServerHelper {
                     className = className.substring(0, className.length() - 6);
                 }
                 try {
-                    // 找到正确的类，并找到带有 IMRoute 注解的类
+                    // 找到正确的类，并找到带有 Distribution 注解的类
                     Class<?> clazz = Class.forName(className);
-                    Route annotation = clazz.getAnnotation(Route.class);
+                    Distribution annotation = clazz.getAnnotation(Distribution.class);
                     if (annotation != null) {
-                        // 将相关信息保存，并做一些初始化操作
-                        handlerRouteClass(clazz, annotation);
+                        // 处理带有 Distribution 注解的类
+                        handlerAnnotationClass(clazz, annotation);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -116,34 +122,22 @@ final class InfiniteServerHelper {
         }
     }
 
-    private void handlerRouteClass(Class<?> clazz, Route annotation) {
+    private void handlerAnnotationClass(Class<?> clazz, Distribution annotation) {
         try {
-            // 父类必须是 RouteHandler.class
-            if (RouteHandler.class.isAssignableFrom(clazz)) {
-                // 实例化自身
-                Object object = clazz.newInstance();
-                // 找到父类的所有方法
-                Class<?> superClass = clazz.getSuperclass();
-                Method[] methods = superClass.getDeclaredMethods();
-                // 该路由对应的类的所有的方法集合（除 init() 外）
-                List<Map<Object, List<Method>>> list = new ArrayList<>();
-                if (routeInfo.get(annotation.value()) != null) {
-                    list.addAll(routeInfo.get(annotation.value()));
+            // 实例化自身
+            Object object = clazz.newInstance();
+            // 找到自身所有的方法
+            Method[] methods = clazz.getDeclaredMethods();
+            for (Method method : methods) {
+                // 筛选方法参数为 Message 和 Session 的的方法
+                if (method.getParameterTypes().length == 2 && method.getParameterTypes()[0].equals(Message.class) && method.getParameterTypes()[1].equals(Session.class)) {
+                    // 组装路由信息
+                    String route = annotation.value() + "." + clazz.getSimpleName() + "." + method.getName();
+                    Map<Object, Method> map = new HashMap<>();
+                    map.put(object, method);
+                    // 加入路由信息中
+                    annotationMethodInfo.put(route, map);
                 }
-                Map<Object, List<Method>> map = new HashMap<>();
-                List<Method> listMethod = new ArrayList<>();
-                for (Method method : methods) {
-                    // 调用 init() 方法
-                    if ("init".equals(method.getName())) {
-                        method.invoke(object);
-                        continue;
-                    }
-                    listMethod.add(method);
-                }
-                map.put(object, listMethod);
-                list.add(map);
-                // 加入路由信息中
-                routeInfo.put(annotation.value(), list);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -152,26 +146,16 @@ final class InfiniteServerHelper {
 
     // 解析客户端发送的协议包
     void parse(Protocol protocol, Session session) {
-        List<Map<Object, List<Method>>> list = routeInfo.get(protocol.getRoute());
-        if (list == null) {
+        Map<Object, Method> map = annotationMethodInfo.get(protocol.getRoute());
+        if (map == null) {
             return;
         }
-        // 解析路由信息中是否包含接收的路由信息
-        for (Map<Object, List<Method>> map : list) {
-            for (Object object : map.keySet()) {
-                List<Method> methods = map.get(object);
-                for (Method method : methods) {
-                    parseMethod(object, method, protocol, session);
-                }
-            }
-        }
-    }
-
-    private void parseMethod(Object object, Method method, Protocol protocol, Session session) {
-        // 解析请求方法
-        if (protocol.getMethod() == Protocol.Method_Notify) {
-            if (method.getName().equals("doNotify")) {
+        // 根据路由信息调用对应的方法
+        for (Object object : map.keySet()) {
+            Method method = map.get(object);
+            if (protocol.getMethod() == Protocol.Method_Notify) {
                 try {
+                    method.setAccessible(true);
                     method.invoke(object, protocol.getContent(), session);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -179,5 +163,6 @@ final class InfiniteServerHelper {
             }
         }
     }
+
 
 }

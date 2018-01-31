@@ -2,7 +2,7 @@ package com.jinchim.infinite.test;
 
 import com.jinchim.infinite.server.InfiniteServer;
 
-public class MyClass {
+public class TestServer {
 
     public static void main(String[] args) {
         InfiniteServer.getInstance().init();

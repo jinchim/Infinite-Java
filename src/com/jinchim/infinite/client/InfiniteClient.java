@@ -54,7 +54,7 @@ public final class InfiniteClient {
             // 获取用于通讯的 channel
             channel = channelFuture.channel();
             // 连接成功
-            System.out.println(TAG + ": connect success => " + ip + ", " + port);
+            System.out.println(TAG + ": connect success => " + ip + ":" + port);
             isConnected = true;
         } catch (Exception e) {
             System.out.println(TAG + ": connect failed => " + e.getMessage());
@@ -103,6 +103,13 @@ public final class InfiniteClient {
         @Override
         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
             System.out.println(TAG + ": receive error => " + cause.getMessage());
+        }
+
+        @Override
+        public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+            System.out.println(TAG + ": server disconnect => " + ctx.channel().remoteAddress());
+            // 断开连接
+            ctx.close().sync();
         }
 
     }
