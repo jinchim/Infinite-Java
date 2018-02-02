@@ -29,14 +29,14 @@ public final class Session {
 
     public void bindId(String id) {
         Utils.checkNull(id, "id");
-        for (Session session : InfiniteServer.getInstance().sessions) {
-            if (session.id.equals(id)) {
-                InfiniteServer.getInstance().sessions.remove(session);
-                break;
-            }
-        }
-        this.id = id;
-        InfiniteServer.getInstance().sessions.add(this);
+//        for (Session session : InfiniteServer.getInstance().sessions) {
+//            if (session.id.equals(id)) {
+//                InfiniteServer.getInstance().sessions.remove(session);
+//                break;
+//            }
+//        }
+//        this.id = id;
+//        InfiniteServer.getInstance().sessions.add(this);
     }
 
     public void notify(String route, Message message) {

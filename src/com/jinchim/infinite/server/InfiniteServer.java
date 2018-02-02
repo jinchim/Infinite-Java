@@ -19,19 +19,19 @@ public final class InfiniteServer {
 
     private static InfiniteServer instance;
     // 用于分配处理业务线程的线程组
-    private EventLoopGroup baseGroup;
+//    private EventLoopGroup baseGroup;
     // 业务处理线程的线程组
-    private EventLoopGroup workerGroup;
+//    private EventLoopGroup workerGroup;
     // 服务端帮助类
     private InfiniteServerHelper helper;
     // 管理客户端连接，必须调用 Session 的对象方法 bindId() 才会加入集合
-    List<Session> sessions;
+//    List<Session> sessions;
 
     private InfiniteServer() {
-        baseGroup = new NioEventLoopGroup();
-        workerGroup = new NioEventLoopGroup();
+//        baseGroup = new NioEventLoopGroup();
+//        workerGroup = new NioEventLoopGroup();
         helper = new InfiniteServerHelper();
-        sessions = new ArrayList<>();
+//        sessions = new ArrayList<>();
     }
 
     public void init() {
@@ -99,40 +99,40 @@ public final class InfiniteServer {
         }
     }
 
-    public void pushMessage(String id, String route, Message message) {
-        Utils.checkNull(id, "id");
-        for (Session session : sessions) {
-            if (id.equals(session.getId())) {
-                session.notify(route, message);
-                break;
-            }
-        }
-    }
-
-    public void pushMessageAll(String route, Message message) {
-        for (Session session : sessions) {
-            session.notify(route, message);
-        }
-    }
+//    public void pushMessage(String id, String route, Message message) {
+//        Utils.checkNull(id, "id");
+//        for (Session session : NettyServerHelper.sessions) {
+//            if (id.equals(session.getId())) {
+//                session.notify(route, message);
+//                break;
+//            }
+//        }
+//    }
+//
+//    public void pushMessageAll(String route, Message message) {
+//        for (Session session : sessions) {
+//            session.notify(route, message);
+//        }
+//    }
 
     public void release() {
-        try {
-            if (baseGroup != null) {
-                baseGroup.shutdownGracefully().sync();
-                baseGroup = null;
-            }
-            if (workerGroup != null) {
-                workerGroup.shutdownGracefully().sync();
-                workerGroup = null;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        for (Session session : sessions) {
-            session.close();
-        }
-        sessions.clear();
-        sessions = null;
+//        try {
+//            if (baseGroup != null) {
+//                baseGroup.shutdownGracefully().sync();
+//                baseGroup = null;
+//            }
+//            if (workerGroup != null) {
+//                workerGroup.shutdownGracefully().sync();
+//                workerGroup = null;
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        for (Session session : sessions) {
+//            session.close();
+//        }
+//        sessions.clear();
+//        sessions = null;
         helper = null;
         instance = null;
     }

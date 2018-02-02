@@ -21,7 +21,7 @@ final class NettyServerHelper {
     // 业务处理线程的线程组
     private EventLoopGroup workerGroup;
     // 管理客户端连接，必须调用 Session 的对象方法 bindId() 才会加入集合
-    List<Session> sessions;
+    private List<Session> sessions;
 
     NettyServerHelper() {
         baseGroup = new NioEventLoopGroup();
@@ -89,6 +89,26 @@ final class NettyServerHelper {
             // 客户端断开连接
             ctx.close().sync();
         }
+    }
+
+    void release() {
+        try {
+            if (baseGroup != null) {
+                baseGroup.shutdownGracefully().sync();
+                baseGroup = null;
+            }
+            if (workerGroup != null) {
+                workerGroup.shutdownGracefully().sync();
+                workerGroup = null;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        for (Session session : sessions) {
+            session.close();
+        }
+        sessions.clear();
+        sessions = null;
     }
 
 }
