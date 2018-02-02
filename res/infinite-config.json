@@ -1,10 +1,10 @@
 {
   "master": {
     "ip": "104.194.95.251",
-    "port": 9998,
+    "rpc_port": 9998,
     "ssh_port": 28447,
-    "username": "jinchim",
-    "password": "8354040110",
+    "username": "root",
+    "password": "zxy1005174702",
     "project_path": "/home/jinchim/workspace/"
   },
   "distribution": [
@@ -28,5 +28,9 @@
         }
       ]
     }
-  ]
+  ],
+  "project": {
+    "lib_path": "/libs/",
+    "res_path": "/res/"
+  }
 }
