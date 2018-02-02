@@ -43,6 +43,7 @@ public final class InfiniteClient {
 
     public boolean connect(String ip, int port) {
         try {
+            System.out.println(TAG + ": connect start");
             Bootstrap bootstrap = new Bootstrap();
             ChannelFuture channelFuture = bootstrap
                     .group(group) // 绑定线程池

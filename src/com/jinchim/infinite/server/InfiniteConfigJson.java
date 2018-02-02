@@ -10,11 +10,12 @@ final class InfiniteConfigJson {
 
     @SerializedName("master") MasterJson master;
     @SerializedName("distribution") List<DistributionJson> distribution;
+    @SerializedName("project") ProjectJson project;
 
     final static class MasterJson {
 
         @SerializedName("ip") String ip;
-        @SerializedName("port") Integer port;
+        @SerializedName("rpc_port") Integer rpcPort;
         @SerializedName("ssh_port") Integer sshPort;
         @SerializedName("username") String username;
         @SerializedName("password") String password;
@@ -34,6 +35,13 @@ final class InfiniteConfigJson {
             @SerializedName("port") Integer port;
 
         }
+
+    }
+
+    final static class ProjectJson {
+
+        @SerializedName("lib_path") String libPath;
+        @SerializedName("res_path") String resPath;
 
     }
 

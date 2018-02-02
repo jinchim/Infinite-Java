@@ -3,6 +3,7 @@ package com.jinchim.infinite.test;
 import com.jinchim.infinite.protocol.Message;
 import com.jinchim.infinite.protocol.message.string.StringMessage;
 import com.jinchim.infinite.server.Distribution;
+import com.jinchim.infinite.server.InfiniteServer;
 import com.jinchim.infinite.server.Session;
 
 @Distribution("test1")

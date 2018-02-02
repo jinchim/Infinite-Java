@@ -2,25 +2,16 @@ package com.jinchim.infinite.server;
 
 import com.jinchim.infinite.Config;
 import com.jinchim.infinite.Utils;
-import com.jinchim.infinite.protocol.Message;
-import com.jinchim.infinite.protocol.MessageDecoder;
-import com.jinchim.infinite.protocol.MessageEncoder;
-import com.jinchim.infinite.protocol.Protocol;
-import com.jinchim.infinite.protocol.ProtocolDecoder;
-import com.jinchim.infinite.protocol.ProtocolEncoder;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import io.netty.bootstrap.ServerBootstrap;
+import com.jinchim.infinite.protocol.*;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public final class InfiniteServer {
 
@@ -48,14 +39,6 @@ public final class InfiniteServer {
             System.out.println(TAG + ": init start");
             // 服务端相关配置的初始化
             helper.init();
-            // 获取 master 服务器的信息并启动
-            String ip = helper.infiniteConfigJson.master.ip;
-            int port = helper.infiniteConfigJson.master.port;
-            int sshPort = helper.infiniteConfigJson.master.sshPort;
-            String username = helper.infiniteConfigJson.master.username;
-            String password = helper.infiniteConfigJson.master.password;
-            String projectPath = helper.infiniteConfigJson.master.projectPath;
-            new MasterServer().init(ip, sshPort, username, password, projectPath);
 
             // 启动分布式服务
 //            ServerBootstrap serverBootstrap = new ServerBootstrap();

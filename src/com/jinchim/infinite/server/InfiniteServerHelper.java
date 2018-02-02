@@ -23,7 +23,7 @@ final class InfiniteServerHelper {
     // 是否存在正确格式的 infinite-config.json 文件
     private boolean isInfiniteConfigCorrect;
     // 分布式服务的配置信息
-    InfiniteConfigJson infiniteConfigJson;
+    private InfiniteConfigJson infiniteConfigJson;
 
     InfiniteServerHelper() {
         annotationMethodInfo = new HashMap<>();
@@ -34,8 +34,11 @@ final class InfiniteServerHelper {
         findInfiniteConfigFile(projectRootPath);
         if (!isInfiniteConfigCorrect) {
             throw new RuntimeException("The infinite-config.json has some errors.");
+        } else {
+            // 如果 infinite-config.json 配置正确则启动 master 服务
+            startMasterServer();
         }
-        // 搜索所有带注解的 Class 文件
+        // 搜索所有带 @Distribution 注解的 Class 文件
         findAnnotationClass(classRootPath);
     }
 
@@ -74,20 +77,38 @@ final class InfiniteServerHelper {
             // 解析 Json 字符串
             infiniteConfigJson = new Gson().fromJson(jsonStr, new TypeToken<InfiniteConfigJson>() {
             }.getType());
-            // master 服务器的配置必须完全
             if (infiniteConfigJson != null &&
                     infiniteConfigJson.master != null &&
                     infiniteConfigJson.master.ip != null &&
-                    infiniteConfigJson.master.port != null &&
+                    infiniteConfigJson.master.rpcPort != null &&
                     infiniteConfigJson.master.sshPort != null &&
                     infiniteConfigJson.master.username != null &&
                     infiniteConfigJson.master.password != null &&
-                    infiniteConfigJson.master.projectPath != null) {
+                    infiniteConfigJson.master.projectPath != null &&
+                    infiniteConfigJson.project != null &&
+                    infiniteConfigJson.project.libPath != null &&
+                    infiniteConfigJson.project.resPath != null) {
                 isInfiniteConfigCorrect = true;
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private void startMasterServer() {
+        SSHHelper sshHelper = new SSHHelper(infiniteConfigJson.master.ip, infiniteConfigJson.master.sshPort, infiniteConfigJson.master.username, infiniteConfigJson.master.password);
+        sshHelper.connect();
+        String projectName = new File(projectRootPath).getName();
+        File[] files = new File(classRootPath).listFiles();
+        for (File file : files) {
+            sshHelper.uploadFile(file.getAbsolutePath(), infiniteConfigJson.master.projectPath + projectName + "/classes/");
+        }
+        sshHelper.uploadFile(projectRootPath + infiniteConfigJson.project.libPath, infiniteConfigJson.master.projectPath + projectName + "/");
+        sshHelper.uploadFile(projectRootPath + infiniteConfigJson.project.resPath, infiniteConfigJson.master.projectPath + projectName + "/");
+        sshHelper.exec("cd " + infiniteConfigJson.master.projectPath + projectName + "/classes/;" +
+                "chmod u+x " + infiniteConfigJson.master.projectPath + projectName + infiniteConfigJson.project.libPath + "*.jar;" +
+                "java -cp .:" + infiniteConfigJson.master.projectPath + projectName + infiniteConfigJson.project.libPath + "*" + " com.jinchim.infinite.server.MasterServer");
+        sshHelper.release();
     }
 
     private void findAnnotationClass(String path) {
