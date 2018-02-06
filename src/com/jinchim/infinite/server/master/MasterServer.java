@@ -1,7 +1,9 @@
-package com.jinchim.infinite.server;
+package com.jinchim.infinite.server.master;
 
 import com.jinchim.infinite.protocol.Message;
 import com.jinchim.infinite.protocol.Protocol;
+import com.jinchim.infinite.server.Distribution;
+import com.jinchim.infinite.server.Session;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -16,11 +18,11 @@ final class MasterServer {
     // 带有注解的类的方法信息
     private Map<String, Map<Object, Method>> annotationMethodInfo;
 
-    MasterServer() {
+    private MasterServer() {
         annotationMethodInfo = new HashMap<>();
     }
 
-    void init() {
+    private void init() {
         // 搜索所有带 @Distribution 注解的 Class 文件
         findAnnotationClass(classRootPath);
     }
@@ -45,7 +47,7 @@ final class MasterServer {
                 try {
                     // 找到正确的类，并找到带有 Distribution 注解的类
                     Class<?> clazz = Class.forName(className);
-                    // 处理带有 @Distribution 注解的类
+                    // 处理带有 @Distribution 注解的类（注解值必须是 master）
                     Distribution annotation = clazz.getAnnotation(Distribution.class);
                     if (annotation != null) {
                         if (annotation.value().equals("master")) {
@@ -61,7 +63,6 @@ final class MasterServer {
 
     private void handlerAnnotationClass(Class<?> clazz, Distribution annotation) {
         try {
-            System.out.println(clazz.getSimpleName() + " => " + annotation.value());
             // 实例化自身
             Object object = clazz.newInstance();
             // 找到自身所有的方法
@@ -101,10 +102,8 @@ final class MasterServer {
         }
     }
 
-    private static MasterServer masterServer;
-
     public static void main(String[] args) {
-        masterServer = new MasterServer();
+        MasterServer masterServer = new MasterServer();
         masterServer.init();
     }
 

@@ -112,7 +112,7 @@ public final class InfiniteServer {
         sshHelper.uploadFile(projectRootPath + infiniteConfigJson.project.resPath, infiniteConfigJson.master.projectPath + projectName + "/");
         sshHelper.exec("cd " + infiniteConfigJson.master.projectPath + projectName + "/classes/;" +
                 "chmod u+x " + infiniteConfigJson.master.projectPath + projectName + infiniteConfigJson.project.libPath + "*.jar;" +
-                "java -cp .:" + infiniteConfigJson.master.projectPath + projectName + infiniteConfigJson.project.libPath + "*" + " com.jinchim.infinite.server.MasterServer");
+                "java -cp .:" + infiniteConfigJson.master.projectPath + projectName + infiniteConfigJson.project.libPath + "*" + " com.jinchim.infinite.server.master.MasterServer");
         sshHelper.release();
     }
 
