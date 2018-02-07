@@ -112,26 +112,11 @@ public final class InfiniteServer {
         sshHelper.uploadFile(projectRootPath + infiniteConfigJson.project.resPath, infiniteConfigJson.master.projectPath + projectName + "/");
         sshHelper.exec("cd " + infiniteConfigJson.master.projectPath + projectName + "/classes/;" +
                 "chmod u+x " + infiniteConfigJson.master.projectPath + projectName + infiniteConfigJson.project.libPath + "*.jar;" +
-                "java -cp .:" + infiniteConfigJson.master.projectPath + projectName + infiniteConfigJson.project.libPath + "*" + " com.jinchim.infinite.server.master.MasterServer");
+                "java -cp .:" + infiniteConfigJson.master.projectPath + projectName + infiniteConfigJson.project.libPath + "*" + " com.jinchim.infinite.server.StartServer master " + infiniteConfigJson.master.rpcPort);
         sshHelper.release();
     }
 
 
-//    public void pushMessage(String id, String route, Message message) {
-//        Utils.checkNull(id, "id");
-//        for (Session session : NettyServerHelper.sessions) {
-//            if (id.equals(session.getId())) {
-//                session.notify(route, message);
-//                break;
-//            }
-//        }
-//    }
-//
-//    public void pushMessageAll(String route, Message message) {
-//        for (Session session : sessions) {
-//            session.notify(route, message);
-//        }
-//    }
 
     public void release() {
         instance = null;

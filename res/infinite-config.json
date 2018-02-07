@@ -1,7 +1,7 @@
 {
   "master": {
     "ip": "104.194.95.251",
-    "rpc_port": 9998,
+    "rpc_port": 10001,
     "ssh_port": 28447,
     "username": "root",
     "password": "zxy1005174702",
