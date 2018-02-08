@@ -19,7 +19,7 @@ import java.util.Map;
 
 final class InfiniteServerHelper {
 
-    private static final String TAG = "InfiniteServerHelper";
+    private static String TAG = "InfiniteServerHelper";
 
     // Class 文件所在的根目录
     private final String classRootPath = getClass().getResource("/").getPath();
@@ -31,26 +31,30 @@ final class InfiniteServerHelper {
     private EventLoopGroup workerGroup;
     // 管理客户端连接，必须调用 Session 的对象方法 bindId() 才会加入集合
     private List<Session> sessions;
+    // 服务名称，在 infinite-config.json 中指定
+    private String serverName;
 
-    InfiniteServerHelper() {
+    InfiniteServerHelper(String serverName) {
         annotationMethodInfo = new HashMap<>();
         baseGroup = new NioEventLoopGroup();
         workerGroup = new NioEventLoopGroup();
         sessions = new ArrayList<>();
+        this.serverName = serverName;
+        TAG += "(" + serverName + ")";
     }
 
-    void startServer(String serverName, int port) {
+    void startServer(int port) {
         // 搜索所有带 @Distribution 注解的 Class 文件，并将其信息保存
-        findAnnotationClass(classRootPath, serverName);
+        findAnnotationClass(classRootPath);
         // 启动服务监听端口
         listen(port);
     }
 
-    private void findAnnotationClass(String path, String serverName) {
+    private void findAnnotationClass(String path) {
         File[] files = new File(path).listFiles();
         for (File file : files) {
             if (file.isDirectory()) {
-                findAnnotationClass(file.getAbsolutePath(), serverName);
+                findAnnotationClass(file.getAbsolutePath());
             } else {
                 // 路径字符串的处理
                 String fileName = file.getAbsolutePath().replace(new File(classRootPath).getAbsolutePath(), "");
@@ -66,7 +70,7 @@ final class InfiniteServerHelper {
                 try {
                     // 找到正确的类，并找到带有 Distribution 注解的类
                     Class<?> clazz = Class.forName(className);
-                    // 处理带有 @Distribution 注解的类（注解值必须是 master）
+                    // 处理带有 @Distribution 注解的类，并且区分注解值对应的服务
                     Distribution annotation = clazz.getAnnotation(Distribution.class);
                     if (annotation != null) {
                         if (annotation.value().equals(serverName)) {
@@ -102,32 +106,12 @@ final class InfiniteServerHelper {
         }
     }
 
-    private void parseProtocol(Protocol protocol, Session session) {
-        Map<Object, Method> map = annotationMethodInfo.get(protocol.getRoute());
-        if (map == null) {
-            return;
-        }
-        // 根据路由信息调用对应的方法
-        for (Object object : map.keySet()) {
-            Method method = map.get(object);
-            if (protocol.getMethod() == Protocol.Method_Notify) {
-                try {
-                    method.setAccessible(true);
-                    method.invoke(object, protocol.getContent(), session);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
     private void listen(int port) {
         try {
             System.out.println(TAG + ": init start");
             ServerBootstrap serverBootstrap = new ServerBootstrap();
             serverBootstrap
                     .group(baseGroup, workerGroup) // 绑定线程池
-                    .option(ChannelOption.SO_KEEPALIVE, true) // 保持长连接
                     .channel(NioServerSocketChannel.class) // 指定使用异步处理事件的 channel
                     .childHandler(new InitHandler()) // 绑定客户端连接时候触发的操作
                     .bind(port) // 绑定端口
@@ -135,6 +119,12 @@ final class InfiniteServerHelper {
             System.out.println(TAG + ": init success, listen on port => " + port);
         } catch (Exception e) {
             System.out.println(TAG + ": init falied => " + e.getMessage());
+            try {
+                baseGroup.shutdownGracefully().sync();
+                workerGroup.shutdownGracefully().sync();
+            } catch (Exception e1) {
+                e1.printStackTrace();
+            }
         }
     }
 
@@ -182,15 +172,32 @@ final class InfiniteServerHelper {
         }
     }
 
+    private void parseProtocol(Protocol protocol, Session session) {
+        Map<Object, Method> map = annotationMethodInfo.get(protocol.getRoute());
+        if (map == null) {
+            return;
+        }
+        // 根据路由信息调用对应的方法
+        for (Object object : map.keySet()) {
+            Method method = map.get(object);
+            if (protocol.getMethod() == Protocol.Method_Notify) {
+                try {
+                    method.setAccessible(true);
+                    method.invoke(object, protocol.getContent(), session);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
     void release() {
         try {
             if (baseGroup != null) {
                 baseGroup.shutdownGracefully().sync();
-                baseGroup = null;
             }
             if (workerGroup != null) {
                 workerGroup.shutdownGracefully().sync();
-                workerGroup = null;
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -199,9 +206,10 @@ final class InfiniteServerHelper {
             session.close();
         }
         sessions.clear();
+        baseGroup = null;
+        workerGroup = null;
         sessions = null;
     }
-
 
 
 }

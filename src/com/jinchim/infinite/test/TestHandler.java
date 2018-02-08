@@ -6,7 +6,7 @@ import com.jinchim.infinite.server.Distribution;
 import com.jinchim.infinite.server.InfiniteServer;
 import com.jinchim.infinite.server.Session;
 
-@Distribution("test1")
+@Distribution("test")
 public class TestHandler {
 
     public void x1(Message message, Session session) {

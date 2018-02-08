@@ -30,12 +30,12 @@ final class SSHHelper {
     boolean connect() {
         try {
             // 连接 SSH
-            System.out.println(TAG + ": connect start");
+            System.out.println(TAG + ": connect start => " + ip + ":" + port);
             JSch jSch = new JSch();
             session = jSch.getSession(username, ip, port);
             session.setPassword(password);
             session.setConfig("StrictHostKeyChecking", "no");
-            session.connect();
+            session.connect(15 * 1000);
             isConnected = true;
             // 打开 sftp 通道并连接
             channelSftp = (ChannelSftp) session.openChannel("sftp");
@@ -48,10 +48,9 @@ final class SSHHelper {
         return isConnected;
     }
 
-
     void uploadFile(String src, String dst) {
         // 创建远程服务器接收文件的目录
-        exec("mkdir -p " + dst);
+        execute("mkdir -p " + dst);
         // 递归上传文件
         File file = new File(src);
         copyFile(file, dst);
@@ -74,20 +73,20 @@ final class SSHHelper {
             }
         } else {
             try {
-                System.out.println(TAG + ": uploadFile => " + dst + file.getName());
+                System.out.println(TAG + ": uploadFile => " + ip + ":" + port + dst + file.getName());
                 channelSftp.put(file.getAbsolutePath(), dst);
-                System.out.println(TAG + ": uploadFile success => " + dst + file.getName());
+                System.out.println(TAG + ": uploadFile success");
             } catch (SftpException e) {
                 System.out.println(TAG + ": uploadFile failed => " + e.getMessage());
             }
         }
     }
 
-    void exec(String cmd) {
+    void execute(String cmd) {
         ChannelExec channelExec = null;
         try {
             // 执行 Linux 命令
-            System.out.println(TAG + ": exec => " + cmd);
+            System.out.println(TAG + ": execute => " + ip + ":" + port + " " + cmd);
             channelExec = (ChannelExec) session.openChannel("exec");
             channelExec.setCommand(cmd);
             channelExec.setInputStream(null);
@@ -116,12 +115,12 @@ final class SSHHelper {
                     if (in.available() > 0) {
                         continue;
                     }
-                    System.out.println(TAG + ": execExitStatus => " + channelExec.getExitStatus());
+                    System.out.println(TAG + ": executeExitStatus => " + channelExec.getExitStatus());
                     break;
                 }
             }
         } catch (Exception e) {
-            System.out.println(TAG + ": exec failed => " + e.getMessage());
+            System.out.println(TAG + ": execute failed => " + e.getMessage());
         } finally {
             if (channelExec != null) {
                 channelExec.disconnect();
@@ -132,13 +131,13 @@ final class SSHHelper {
     void release() {
         if (channelSftp != null) {
             channelSftp.disconnect();
-            channelSftp = null;
         }
         if (session != null) {
             session.disconnect();
-            session = null;
         }
         isConnected = false;
+        channelSftp = null;
+        session = null;
     }
 
 }

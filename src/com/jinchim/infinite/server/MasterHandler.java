@@ -6,9 +6,9 @@ import com.jinchim.infinite.protocol.message.string.StringMessage;
 @Distribution("master")
 final class MasterHandler {
 
-    private void xixi(Message message, Session session) {
+    private void test(Message message, Session session) {
         StringMessage stringMessage = (StringMessage) message;
-        System.out.println("xixi => " + stringMessage.getMessage());
+        session.notify("test", new StringMessage("回复你：" + stringMessage.getMessage()));
     }
 
 }

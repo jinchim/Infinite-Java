@@ -43,11 +43,10 @@ public final class InfiniteClient {
 
     public boolean connect(String ip, int port) {
         try {
-            System.out.println(TAG + ": connect start");
+            System.out.println(TAG + ": connect start => " + ip + ":" + port);
             Bootstrap bootstrap = new Bootstrap();
             ChannelFuture channelFuture = bootstrap
                     .group(group) // 绑定线程池
-                    .option(ChannelOption.SO_KEEPALIVE, true) // 保持长连接
                     .channel(NioSocketChannel.class) // 指定使用异步处理事件的 channel
                     .handler(new InitHandler()) // 客户端初始化操作
                     .connect(ip, port) // 连接服务器
@@ -59,6 +58,11 @@ public final class InfiniteClient {
             isConnected = true;
         } catch (Exception e) {
             System.out.println(TAG + ": connect failed => " + e.getMessage());
+            try {
+                group.shutdownGracefully().sync();
+            } catch (Exception e1) {
+                e1.printStackTrace();
+            }
             isConnected = false;
         }
         return isConnected;
@@ -155,17 +159,17 @@ public final class InfiniteClient {
         try {
             if (group != null) {
                 group.shutdownGracefully().sync();
-                group = null;
             }
             if (channel != null) {
                 channel.close().sync();
-                channel = null;
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
         isConnected = false;
         listeners.clear();
+        group = null;
+        channel = null;
         listeners = null;
         instance = null;
     }

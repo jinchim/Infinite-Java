@@ -136,12 +136,12 @@ public final class Protocol {
 
     @Override
     public String toString() {
-        return "length => " + getLength() + "\n" +
-                "method => " + getMethod() + "\n" +
-                "routeLength => " + getRouteLength() + "\n" +
-                "route => " + getRoute() + "\n" +
-                "contentLength => " + getContentLength() + "\n" +
-                "content => " + getContent().toString();
+        return "length: " + getLength() + "\n" +
+                "method: " + getMethod() + "\n" +
+                "routeLength: " + getRouteLength() + "\n" +
+                "route: " + getRoute() + "\n" +
+                "contentLength: " + getContentLength() + "\n" +
+                "content: " + getContent().toString();
     }
 
 }

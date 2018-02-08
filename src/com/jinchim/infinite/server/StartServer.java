@@ -8,10 +8,10 @@ final class StartServer {
             throw new RuntimeException("The args should not be less than 2.");
         }
         String serverName = args[0];
-        int port = Integer.parseInt(args[1]);
+        int rpcPort = Integer.parseInt(args[1]);
 
-        InfiniteServerHelper helper = new InfiniteServerHelper();
-        helper.startServer(serverName, port);
+        InfiniteServerHelper helper = new InfiniteServerHelper(serverName);
+        helper.startServer(rpcPort);
     }
 
 }

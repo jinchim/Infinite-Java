@@ -8,12 +8,13 @@ import java.util.List;
 
 final class InfiniteConfigJson {
 
-    @SerializedName("master") MasterJson master;
+    @SerializedName("master") ConfigJosn master;
     @SerializedName("distribution") List<DistributionJson> distribution;
     @SerializedName("project") ProjectJson project;
 
-    final static class MasterJson {
+    final static class ConfigJosn {
 
+        @SerializedName("id") String id;
         @SerializedName("ip") String ip;
         @SerializedName("rpc_port") Integer rpcPort;
         @SerializedName("ssh_port") Integer sshPort;
@@ -26,15 +27,7 @@ final class InfiniteConfigJson {
     final static class DistributionJson {
 
         @SerializedName("name") String name;
-        @SerializedName("config") List<ConfigJson> config;
-
-        final static class ConfigJson {
-
-            @SerializedName("id") Integer id;
-            @SerializedName("ip") String ip;
-            @SerializedName("port") Integer port;
-
-        }
+        @SerializedName("config") List<ConfigJosn> config;
 
     }
 
@@ -44,7 +37,6 @@ final class InfiniteConfigJson {
         @SerializedName("res_path") String resPath;
 
     }
-
 
     @Override
     public String toString() {
