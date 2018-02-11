@@ -14,9 +14,8 @@ final class InfiniteConfigJson {
 
     final static class ConfigJosn {
 
-        @SerializedName("id") String id;
         @SerializedName("ip") String ip;
-        @SerializedName("rpc_port") Integer rpcPort;
+        @SerializedName("port") Integer port;
         @SerializedName("ssh_port") Integer sshPort;
         @SerializedName("username") String username;
         @SerializedName("password") String password;
@@ -33,6 +32,7 @@ final class InfiniteConfigJson {
 
     final static class ProjectJson {
 
+        @SerializedName("name") String name;
         @SerializedName("lib_path") String libPath;
         @SerializedName("res_path") String resPath;
 

@@ -1,7 +1,7 @@
 {
   "master": {
     "ip": "47.97.171.3",
-    "rpc_port": 9999,
+    "port": 9999,
     "ssh_port": 22,
     "username": "root",
     "password": "Jin8354040110",
@@ -12,9 +12,16 @@
       "name": "test",
       "config": [
         {
-          "id": 1,
           "ip": "47.97.171.3",
-          "rpc_port": 9999,
+          "port": 9998,
+          "ssh_port": 22,
+          "username": "root",
+          "password": "Jin8354040110",
+          "project_path": "/home/admin/JavaProjects/"
+        },
+        {
+          "ip": "47.97.171.3",
+          "port": 9997,
           "ssh_port": 22,
           "username": "root",
           "password": "Jin8354040110",
@@ -24,6 +31,7 @@
     }
   ],
   "project": {
+    "name": "Infinite",
     "lib_path": "/libs/",
     "res_path": "/res/"
   }

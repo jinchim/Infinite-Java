@@ -40,7 +40,7 @@ final class SSHHelper {
             // 打开 sftp 通道并连接
             channelSftp = (ChannelSftp) session.openChannel("sftp");
             channelSftp.connect();
-            System.out.println(TAG + ": connect success => " + ip + ":" + port);
+            System.out.println(TAG + ": connect success");
         } catch (Exception e) {
             System.out.println(TAG + ": connect failed => " + e.getMessage());
             isConnected = false;
@@ -73,7 +73,7 @@ final class SSHHelper {
             }
         } else {
             try {
-                System.out.println(TAG + ": uploadFile => " + ip + ":" + port + dst + file.getName());
+                System.out.println(TAG + ": uploadFile => " + ip + ":" + port + " " + dst + file.getName());
                 channelSftp.put(file.getAbsolutePath(), dst);
                 System.out.println(TAG + ": uploadFile success");
             } catch (SftpException e) {
@@ -82,10 +82,9 @@ final class SSHHelper {
         }
     }
 
-    void execute(String cmd) {
+    void execute(String cmd, boolean isInstantlyExit) {
         ChannelExec channelExec = null;
         try {
-            // 执行 Linux 命令
             System.out.println(TAG + ": execute => " + ip + ":" + port + " " + cmd);
             channelExec = (ChannelExec) session.openChannel("exec");
             channelExec.setCommand(cmd);
@@ -118,6 +117,10 @@ final class SSHHelper {
                     System.out.println(TAG + ": executeExitStatus => " + channelExec.getExitStatus());
                     break;
                 }
+                if (isInstantlyExit) {
+//                    System.out.println(TAG + ": xixiStatus => " + channelExec.getExitStatus());
+//                    break;
+                }
             }
         } catch (Exception e) {
             System.out.println(TAG + ": execute failed => " + e.getMessage());
@@ -126,6 +129,10 @@ final class SSHHelper {
                 channelExec.disconnect();
             }
         }
+    }
+
+    void execute(String cmd) {
+        execute(cmd, false);
     }
 
     void release() {

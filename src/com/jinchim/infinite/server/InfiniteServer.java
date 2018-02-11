@@ -20,7 +20,7 @@ public final class InfiniteServer {
 
     // class 文件的根目录
     private final String classRootPath;
-    // 项目的根目录
+    //    // 项目的根目录
     private final String projectRootPath;
     // 是否存在正确格式的 infinite-config.json 文件
     private boolean isInfiniteConfigCorrect;
@@ -46,7 +46,6 @@ public final class InfiniteServer {
             uploadCodeToDistribution();
             // 上传代码后启动 master 服务
             startMaster();
-            System.out.println(TAG + ": init success");
         } catch (Exception e) {
             System.out.println(TAG + ": init failed => " + e.getMessage());
         }
@@ -87,20 +86,31 @@ public final class InfiniteServer {
             // 解析 Json 字符串
             infiniteConfigJson = new Gson().fromJson(jsonStr, new TypeToken<InfiniteConfigJson>() {
             }.getType());
-            // 判断是否有字段为空
-            if (infiniteConfigJson != null &&
-                    infiniteConfigJson.master != null &&
-                    infiniteConfigJson.master.ip != null &&
-                    infiniteConfigJson.master.rpcPort != null &&
-                    infiniteConfigJson.master.sshPort != null &&
-                    infiniteConfigJson.master.username != null &&
-                    infiniteConfigJson.master.password != null &&
-                    infiniteConfigJson.master.projectPath != null &&
-                    infiniteConfigJson.distribution != null &&
-                    infiniteConfigJson.project != null &&
-                    infiniteConfigJson.project.libPath != null &&
-                    infiniteConfigJson.project.resPath != null) {
-                isInfiniteConfigCorrect = true;
+            // 判断配置文件格式是否有问题
+            if (!infiniteConfigJson.toString().contains("null")) {
+                if (infiniteConfigJson.master.projectPath.endsWith("/") &&
+                        infiniteConfigJson.project.libPath.length() >= 3 &&
+                        infiniteConfigJson.project.resPath.length() >= 3 &&
+                        infiniteConfigJson.project.libPath.startsWith("/") &&
+                        infiniteConfigJson.project.libPath.endsWith("/") &&
+                        infiniteConfigJson.project.resPath.startsWith("/") &&
+                        infiniteConfigJson.project.resPath.endsWith("/")) {
+                    int count = 0;
+                    for (InfiniteConfigJson.DistributionJson distributionJson : infiniteConfigJson.distribution) {
+                        int count2 = 0;
+                        for (InfiniteConfigJson.ConfigJosn configJosn : distributionJson.config) {
+                            if (configJosn.projectPath.endsWith("/")) {
+                                count2++;
+                            }
+                        }
+                        if (count2 == distributionJson.config.size()) {
+                            count++;
+                        }
+                    }
+                    if (count == infiniteConfigJson.distribution.size()) {
+                        isInfiniteConfigCorrect = true;
+                    }
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -112,13 +122,12 @@ public final class InfiniteServer {
         if (!sshHelper.connect()) {
             throw new RuntimeException("SSH connect failed, please check the infinite-config.json.");
         }
-        String projectName = new File(projectRootPath).getName();
         File[] files = new File(classRootPath).listFiles();
         for (File file : files) {
-            sshHelper.uploadFile(file.getAbsolutePath(), infiniteConfigJson.master.projectPath + projectName + "/classes/");
+            sshHelper.uploadFile(file.getAbsolutePath(), infiniteConfigJson.master.projectPath + infiniteConfigJson.project.name + "/classes/");
         }
-        sshHelper.uploadFile(projectRootPath + infiniteConfigJson.project.libPath, infiniteConfigJson.master.projectPath + projectName + "/");
-        sshHelper.uploadFile(projectRootPath + infiniteConfigJson.project.resPath, infiniteConfigJson.master.projectPath + projectName + "/");
+        sshHelper.uploadFile(projectRootPath + infiniteConfigJson.project.libPath, infiniteConfigJson.master.projectPath + infiniteConfigJson.project.name + "/");
+        sshHelper.uploadFile(projectRootPath + infiniteConfigJson.project.resPath, infiniteConfigJson.master.projectPath + infiniteConfigJson.project.name + "/");
         sshHelper.release();
     }
 
@@ -129,13 +138,12 @@ public final class InfiniteServer {
                 if (!sshHelper.connect()) {
                     throw new RuntimeException("SSH connect failed, please check the infinite-config.json.");
                 }
-                String projectName = new File(projectRootPath).getName();
                 File[] files = new File(classRootPath).listFiles();
                 for (File file : files) {
-                    sshHelper.uploadFile(file.getAbsolutePath(), configJosn.projectPath + projectName + "/classes/");
+                    sshHelper.uploadFile(file.getAbsolutePath(), configJosn.projectPath + infiniteConfigJson.project.name + "/classes/");
                 }
-                sshHelper.uploadFile(projectRootPath + infiniteConfigJson.project.libPath, configJosn.projectPath + projectName + "/");
-                sshHelper.uploadFile(projectRootPath + infiniteConfigJson.project.resPath, configJosn.projectPath + projectName + "/");
+                sshHelper.uploadFile(projectRootPath + infiniteConfigJson.project.libPath, configJosn.projectPath + infiniteConfigJson.project.name + "/");
+                sshHelper.uploadFile(projectRootPath + infiniteConfigJson.project.resPath, configJosn.projectPath + infiniteConfigJson.project.name + "/");
                 sshHelper.release();
             }
         }
@@ -146,10 +154,16 @@ public final class InfiniteServer {
         if (!sshHelper.connect()) {
             throw new RuntimeException("SSH connect failed, please check the infinite-config.json.");
         }
-        String projectName = new File(projectRootPath).getName();
-        sshHelper.execute("cd " + infiniteConfigJson.master.projectPath + projectName + "/classes/;" +
-                "chmod u+x " + infiniteConfigJson.master.projectPath + projectName + infiniteConfigJson.project.libPath + "*.jar;" +
-                "java -cp .:" + infiniteConfigJson.master.projectPath + projectName + infiniteConfigJson.project.libPath + "*" + " com.jinchim.infinite.server.StartServer master " + infiniteConfigJson.master.rpcPort);
+        StringBuilder execute = new StringBuilder();
+        execute.append("cd " + infiniteConfigJson.master.projectPath + infiniteConfigJson.project.name + "/classes/;" +
+                "chmod u+x " + infiniteConfigJson.master.projectPath + infiniteConfigJson.project.name + infiniteConfigJson.project.libPath + "*.jar;" +
+                "java -cp .:" + infiniteConfigJson.master.projectPath + infiniteConfigJson.project.name + infiniteConfigJson.project.libPath + "*" + " com.jinchim.infinite.server.StartServer master " + infiniteConfigJson.master.port + " " + infiniteConfigJson.project.name + " " + infiniteConfigJson.project.libPath + " " + infiniteConfigJson.project.resPath);
+        for (InfiniteConfigJson.DistributionJson distributionJson : infiniteConfigJson.distribution) {
+            for (InfiniteConfigJson.ConfigJosn configJosn : distributionJson.config) {
+                execute.append(" " + distributionJson.name + " " + configJosn.ip + " " + configJosn.port + " " + configJosn.sshPort + " " + configJosn.username + " " + configJosn.password + " " + configJosn.projectPath);
+            }
+        }
+        sshHelper.execute(execute.toString());
         sshHelper.release();
     }
 

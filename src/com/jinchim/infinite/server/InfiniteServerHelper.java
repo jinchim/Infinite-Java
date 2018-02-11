@@ -5,7 +5,10 @@ import com.jinchim.infinite.protocol.Protocol;
 import com.jinchim.infinite.protocol.ProtocolDecoder;
 import com.jinchim.infinite.protocol.ProtocolEncoder;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.*;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -73,7 +76,7 @@ final class InfiniteServerHelper {
                     // 处理带有 @Distribution 注解的类，并且区分注解值对应的服务
                     Distribution annotation = clazz.getAnnotation(Distribution.class);
                     if (annotation != null) {
-                        if (annotation.value().equals(serverName)) {
+                        if (serverName.equals(annotation.value())) {
                             handlerAnnotationClass(clazz, annotation);
                         }
                     }
@@ -95,6 +98,7 @@ final class InfiniteServerHelper {
                 if (method.getParameterTypes().length == 2 && method.getParameterTypes()[0].equals(Message.class) && method.getParameterTypes()[1].equals(Session.class)) {
                     // 组装路由信息
                     String route = annotation.value() + "." + clazz.getSimpleName() + "." + method.getName();
+                    System.out.println("Handler => " + route);
                     Map<Object, Method> map = new HashMap<>();
                     map.put(object, method);
                     // 加入路由信息中
@@ -116,15 +120,16 @@ final class InfiniteServerHelper {
                     .childHandler(new InitHandler()) // 绑定客户端连接时候触发的操作
                     .bind(port) // 绑定端口
                     .sync(); // 同步操作
-            System.out.println(TAG + ": init success, listen on port => " + port);
+            System.out.println(TAG + ": init success, listen port => " + port);
         } catch (Exception e) {
-            System.out.println(TAG + ": init falied => " + e.getMessage());
+            System.out.println(TAG + ": init failed => " + e.getMessage());
             try {
                 baseGroup.shutdownGracefully().sync();
                 workerGroup.shutdownGracefully().sync();
             } catch (Exception e1) {
                 e1.printStackTrace();
             }
+            System.exit(1);
         }
     }
 
