@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.jinchim.infinite.protocol.message.string.StringMessage;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -132,6 +133,14 @@ public final class InfiniteClient {
             temp.add(listener);
             listeners.put(route, temp);
         }
+    }
+
+    public void notify(String route, String stringMessage) {
+        Protocol protocol = new Protocol();
+        protocol.setMethod(Protocol.Method_Notify);
+        protocol.setRoute(route);
+        protocol.setContent(new StringMessage(stringMessage));
+        send(protocol);
     }
 
     public void notify(String route, Message message) {

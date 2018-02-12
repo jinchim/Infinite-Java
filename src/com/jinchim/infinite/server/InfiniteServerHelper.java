@@ -98,7 +98,6 @@ final class InfiniteServerHelper {
                 if (method.getParameterTypes().length == 2 && method.getParameterTypes()[0].equals(Message.class) && method.getParameterTypes()[1].equals(Session.class)) {
                     // 组装路由信息
                     String route = annotation.value() + "." + clazz.getSimpleName() + "." + method.getName();
-                    System.out.println("Handler => " + route);
                     Map<Object, Method> map = new HashMap<>();
                     map.put(object, method);
                     // 加入路由信息中

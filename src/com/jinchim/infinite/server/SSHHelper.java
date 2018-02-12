@@ -82,7 +82,7 @@ final class SSHHelper {
         }
     }
 
-    void execute(String cmd, boolean isInstantlyExit) {
+    void execute(String cmd) {
         ChannelExec channelExec = null;
         try {
             System.out.println(TAG + ": execute => " + ip + ":" + port + " " + cmd);
@@ -117,10 +117,6 @@ final class SSHHelper {
                     System.out.println(TAG + ": executeExitStatus => " + channelExec.getExitStatus());
                     break;
                 }
-                if (isInstantlyExit) {
-//                    System.out.println(TAG + ": xixiStatus => " + channelExec.getExitStatus());
-//                    break;
-                }
             }
         } catch (Exception e) {
             System.out.println(TAG + ": execute failed => " + e.getMessage());
@@ -131,9 +127,6 @@ final class SSHHelper {
         }
     }
 
-    void execute(String cmd) {
-        execute(cmd, false);
-    }
 
     void release() {
         if (channelSftp != null) {

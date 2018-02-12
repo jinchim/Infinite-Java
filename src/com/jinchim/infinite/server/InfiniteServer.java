@@ -157,7 +157,7 @@ public final class InfiniteServer {
         StringBuilder execute = new StringBuilder();
         execute.append("cd " + infiniteConfigJson.master.projectPath + infiniteConfigJson.project.name + "/classes/;" +
                 "chmod u+x " + infiniteConfigJson.master.projectPath + infiniteConfigJson.project.name + infiniteConfigJson.project.libPath + "*.jar;" +
-                "java -cp .:" + infiniteConfigJson.master.projectPath + infiniteConfigJson.project.name + infiniteConfigJson.project.libPath + "*" + " com.jinchim.infinite.server.StartServer master " + infiniteConfigJson.master.port + " " + infiniteConfigJson.project.name + " " + infiniteConfigJson.project.libPath + " " + infiniteConfigJson.project.resPath);
+                "java -cp .:" + infiniteConfigJson.master.projectPath + infiniteConfigJson.project.name + infiniteConfigJson.project.libPath + "*" + " com.jinchim.infinite.server.StartMasterServer " + infiniteConfigJson.master.ip + " " + infiniteConfigJson.master.port + " " + infiniteConfigJson.project.name + " " + infiniteConfigJson.project.libPath + " " + infiniteConfigJson.project.resPath);
         for (InfiniteConfigJson.DistributionJson distributionJson : infiniteConfigJson.distribution) {
             for (InfiniteConfigJson.ConfigJosn configJosn : distributionJson.config) {
                 execute.append(" " + distributionJson.name + " " + configJosn.ip + " " + configJosn.port + " " + configJosn.sshPort + " " + configJosn.username + " " + configJosn.password + " " + configJosn.projectPath);
